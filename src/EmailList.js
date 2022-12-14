@@ -12,11 +12,28 @@ import {
   Settings,
 } from "@mui/icons-material";
 import { IconButton } from "@mui/material";
+import { useEffect, useState } from "react";
 import "./EmailList.css";
 import EmailRow from "./EmailRow";
+import { db } from "./firebase";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import Section from "./Section";
 
 const EmailList = () => {
+  const [emails, setEmails] = useState([]);
+  const colref = collection(db, "emails");
+  const q = query(colref, orderBy("timestamp", "desc"));
+
+  useEffect(() => {
+    onSnapshot(q, (snapshot) => {
+      setEmails(
+        snapshot.docs.map((doc) => ({
+          id: doc.id,
+          data: doc.data(),
+        }))
+      );
+    });
+  }, []);
   return (
     <div className="emailList">
       <div className="emailList__settings">
@@ -54,18 +71,16 @@ const EmailList = () => {
       </div>
 
       <div className="emailList__list">
-        <EmailRow
-          title="Twitch"
-          subject="Hey fellow streamer!!!"
-          description="This is a test"
-          time="10pm"
-        />
-        <EmailRow
-          title="Twitch"
-          subject="Hey fellow streamer!!!"
-          description="This is a test"
-          time="10pm"
-        />
+        {emails.map(({ id, data: { to, subject, message, timestamp } }) => (
+          <EmailRow
+            id={id}
+            key={id}
+            title={to}
+            subject={subject}
+            description={message}
+            time={new Date(timestamp?.seconds * 1000).toUTCString()}
+          />
+        ))}
       </div>
     </div>
   );

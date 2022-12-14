@@ -5,6 +5,8 @@ import "./SendMail.css";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { closeSendMessage } from "./features/mailSlice";
+import { db } from "./firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const SendMail = () => {
   const dispatch = useDispatch();
@@ -14,8 +16,16 @@ const SendMail = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = (formData) => {
+    console.log(formData.message);
+
+    addDoc(collection(db, "emails"), {
+      to: formData.to,
+      subject: formData.subject,
+      message: formData.message,
+      timestamp: serverTimestamp(),
+    });
+    dispatch(closeSendMessage());
   };
 
   return (
@@ -45,12 +55,11 @@ const SendMail = () => {
           <p className="sendMail__error">'Subject' is required.</p>
         )}
 
-        <input
+        <textarea
           {...register("message", { required: true })}
           placeholder="Message..."
-          type="text"
           className="sendMail__message"
-        />
+        ></textarea>
         {errors.message && (
           <p className="sendMail__error">'Message' is required.</p>
         )}

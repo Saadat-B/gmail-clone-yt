@@ -61,4 +61,6 @@
 
 .sendMail__message {
   flex: 1;
+  outline: none;
+  border: none;
 }
